@@ -1,0 +1,50 @@
+import javax.net.SocketFactory;
+import java.io.*;
+import java.net.Socket;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        Main main = new Main();
+        main.initializareSocked("me.utm.md", 80);
+    }
+
+    public String initializareSocked(String url, int port) throws IOException {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Initializam un nou socked pe adresa " + url + "port " + port);
+
+        SocketFactory SocketFactory = (javax.net.SocketFactory) javax.net.SocketFactory.getDefault();
+        Socket socket = (Socket) SocketFactory.createSocket(url, port);
+        PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
+        printWriter.println("GET / HTTP/1.1");
+        printWriter.println("Host:" + url);
+        printWriter.println("");
+        printWriter.flush();
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        String raspuns;
+        while ((raspuns = bufferedReader.readLine()) != null) {
+            setamImag(raspuns);
+        }
+        bufferedReader.close();
+        printWriter.close();
+        socket.close();
+        return raspuns;
+    }
+
+    public void setamImag(String raspuns) {
+        Pattern pattern = Pattern.compile("^\\'\"=]]s] + \\.(jpeg|png|gif)");
+        String urlImages;
+        String numeImages;
+        Matcher matcher;
+        matcher = pattern.matcher(raspuns);
+        while (matcher.find()) {
+            numeImages = matcher.group();
+            urlImages = "me.utm.md" + numeImages;
+            System.out.println("Imaginile selectate:" + urlImages);
+            Multithreading multithreading = new Multithreading(urlImages, numeImages);
+            multithreading.run();
+        }
+    }
+}

@@ -1,0 +1,48 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+//indicam conex socket cu server de la care trimitem get request
+public class Main {
+    public static void main(String[] args) throws IOException{
+        Main main = new Main();
+        main.initSocket("me.utm.md", 80);
+    }
+    public void initSocket(String url, int port) throws IOException{
+        System.out.println("Init socket from: "  +url +" with port " +port);
+        Socket socket = new Socket(url, port);
+        PrintWriter printWriter= new PrintWriter(socket.getOutputStream());
+        printWriter.println("GET/HTTP/1.1");
+        printWriter.println("HOST:" +url);
+        printWriter.println("");
+        printWriter.flush();
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        String rsp;
+        while((rsp = bufferedReader.readLine())!=null){
+            selectImages(rsp);
+        }
+        bufferedReader.close();
+        printWriter.close();
+        socket.close();
+    }
+    //prin buffered citim datele din rsp
+    //treb sa citim datele din rsp primit si sa gasim path pt fiecare img accesata
+    public void selectImages(String rsp){
+        Pattern pattern = Pattern.compile("[^\\'\"=\\s]+\\.(jpe?g|png|gif)");
+        String urlImages;
+        String imageName;
+        Matcher matcher;
+        matcher = pattern.matcher(rsp);
+        while(matcher.find()){
+            imageName = matcher.group();
+            urlImages = "me.utm.md"+ imageName;
+            System.out.println("Selectam o noua img"+urlImages);
+            Multithreading multithreading = new Multithreading(urlImages, imageName);
+                multithreading.run();
+            }
+        }
+    }
+
